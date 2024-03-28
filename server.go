@@ -2,8 +2,6 @@ package main
 
 import (
 	"archive/zip"
-	"crypto/sha256"
-	"crypto/subtle"
 	"fmt"
 	"io"
 	"net/http"
@@ -269,16 +267,12 @@ func postCreateTexture(w http.ResponseWriter, r *http.Request) {
 func basicAuth(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key := r.Header.Get("api_key")
-		keyHash := sha256.Sum256([]byte(key))
-		expectedKeyHash := sha256.Sum256([]byte(apiKey))
+		//keyHash := sha256.Sum256([]byte(key))
+		//expectedKeyHash := sha256.Sum256([]byte(apiKey))
 
-		keyMatch := (subtle.ConstantTimeCompare(keyHash[:], expectedKeyHash[:]) == 1)
+		//keyhashMatch := (subtle.ConstantTimeCompare(keyHash[:], expectedKeyHash[:]) == 1)
 
-		fmt.Println(key)
-		fmt.Println(apiKey)
-		fmt.Println(keyMatch)
-
-		if keyMatch {
+		if key == apiKey {
 			next.ServeHTTP(w, r)
 			return
 		}
