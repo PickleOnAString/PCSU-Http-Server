@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var apiKey = ""
@@ -22,7 +23,7 @@ func main() {
 		fmt.Printf("Error reading file: %v\n", err)
 		return
 	}
-	apiKey = string(keyFile)
+	apiKey = strings.TrimSuffix(string(keyFile), "\n")
 	fmt.Println(apiKey)
 
 	mux := http.NewServeMux()
