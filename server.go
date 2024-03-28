@@ -11,11 +11,19 @@ import (
 	"path/filepath"
 )
 
-var apiKey = "AG626^%ft2*(@*(!hj2osl2{]!&@"
+var apiKey = ""
 
 func getLocalVersion() string { return "0.1" }
 
 func main() {
+
+	keyFile, err := os.ReadFile("./key.txt")
+	if err != nil {
+		fmt.Printf("Error reading file: %v\n", err)
+		return
+	}
+	apiKey = string(keyFile)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", basicAuth(getRoot))
 	mux.HandleFunc("/hello", basicAuth(getHello))
