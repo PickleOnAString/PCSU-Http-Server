@@ -14,7 +14,7 @@ import (
 
 var apiKey = ""
 
-func getLocalVersion() string { return "0.1" }
+func getLocalVersion() string { return "0.2" }
 
 func main() {
 
@@ -33,6 +33,7 @@ func main() {
 	mux.HandleFunc("/outdated", basicAuth(getOutdated))
 	mux.HandleFunc("/mod", basicAuth(getModfolderPack))
 	mux.HandleFunc("/create/prop", basicAuth(postCreatePropFile))
+	mux.HandleFunc("/create/elytra_prop", basicAuth(postCreateElytraPropFile))
 	mux.HandleFunc("/create/texture", basicAuth(postCreateTexture))
 
 	http.ListenAndServe(":3333", mux)
@@ -122,6 +123,37 @@ func makePropFile(item string, displayName string, texture string, fileName stri
 		return
 	}
 	_, err = fmt.Fprintf(file, "%s=%s\n", "items", item)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+	_, err = fmt.Fprintf(file, "%s=%s\n", "nbt.display.Name", displayName)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+	_, err = fmt.Fprintf(file, "%s=%s", "texture", "textures/"+texture)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+
+	fmt.Println("File created:", filePath)
+}
+
+func makeElytraPropFile(displayName string, texture string, fileName string) {
+	filePath := "template/assets/minecraft/citresewn/cit/" + fileName + ".properties"
+
+	// Create the file
+	file, err := os.Create(filePath)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	defer file.Close()
+
+	// Write key-value pairs to the file
+	_, err = fmt.Fprintf(file, "%s=%s\n", "type", "elytra")
 	if err != nil {
 		fmt.Println("Error writing to file:", err)
 		return
@@ -251,6 +283,23 @@ func postCreatePropFile(w http.ResponseWriter, r *http.Request) {
 		fileName = "error"
 	}
 	makePropFile(item, displayName, texture, fileName)
+	io.WriteString(w, "OK!")
+}
+
+func postCreateElytraPropFile(w http.ResponseWriter, r *http.Request) {
+	displayName := r.PostFormValue("displayName")
+	if displayName == "" {
+		displayName = ""
+	}
+	texture := r.PostFormValue("texture")
+	if texture == "" {
+		texture = ""
+	}
+	fileName := r.PostFormValue("fileName")
+	if fileName == "" {
+		fileName = "error"
+	}
+	makeElytraPropFile(displayName, texture, fileName)
 	io.WriteString(w, "OK!")
 }
 
