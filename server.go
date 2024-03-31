@@ -24,7 +24,6 @@ func main() {
 		return
 	}
 	apiKey = strings.TrimSuffix(string(keyFile), "\n")
-	fmt.Println(apiKey)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", basicAuth(getRoot))
@@ -323,10 +322,6 @@ func basicAuth(next http.HandlerFunc) http.HandlerFunc {
 		expectedKeyHash := sha256.Sum256([]byte(apiKey))
 
 		keyMatch := (subtle.ConstantTimeCompare(keyHash[:], expectedKeyHash[:]) == 1)
-
-		fmt.Println(key)
-		fmt.Println(apiKey)
-		fmt.Println(keyMatch)
 
 		if keyMatch {
 			next.ServeHTTP(w, r)
