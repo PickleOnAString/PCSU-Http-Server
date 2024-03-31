@@ -14,8 +14,6 @@ import (
 
 var apiKey = ""
 
-func getLocalVersion() string { return "0.2" }
-
 func main() {
 
 	keyFile, err := os.ReadFile("./key.txt")
@@ -29,8 +27,6 @@ func main() {
 	mux.HandleFunc("/", basicAuth(getRoot))
 	mux.HandleFunc("/hello", basicAuth(getHello))
 	mux.HandleFunc("/resource_pack", basicAuth(getResourcePack))
-	mux.HandleFunc("/outdated", basicAuth(getOutdated))
-	mux.HandleFunc("/mod", basicAuth(getModfolderPack))
 	mux.HandleFunc("/create/prop", basicAuth(postCreatePropFile))
 	mux.HandleFunc("/create/elytra_prop", basicAuth(postCreateElytraPropFile))
 	mux.HandleFunc("/create/texture", basicAuth(postCreateTexture))
@@ -231,36 +227,6 @@ func getResourcePack(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Unable to send file", http.StatusInternalServerError)
 		return
-	}
-}
-
-func getModfolderPack(w http.ResponseWriter, r *http.Request) {
-	file, err := os.Open("picklesclientsideutils.jar")
-	if err != nil {
-		http.Error(w, "Unable to open file", http.StatusInternalServerError)
-		return
-	}
-	defer file.Close()
-
-	// Set the Content-Type header to indicate the file type
-	w.Header().Set("Content-Type", "application/jar")
-
-	// Send the zip file to the client
-	_, err = io.Copy(w, file)
-	if err != nil {
-		http.Error(w, "Unable to send file", http.StatusInternalServerError)
-		return
-	}
-}
-
-func getOutdated(w http.ResponseWriter, r *http.Request) {
-	isRemoteVersion := r.URL.Query().Has("version")
-	remoteVersion := r.URL.Query().Get("version")
-	fmt.Printf(getLocalVersion() + " vs " + remoteVersion)
-	if isRemoteVersion && (remoteVersion != getLocalVersion()) {
-		io.WriteString(w, "true")
-	} else {
-		io.WriteString(w, "false")
 	}
 }
 
