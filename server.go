@@ -131,7 +131,7 @@ func makePropFile(item string, displayName string, texture string, fileName stri
 		fmt.Println("Error writing to file:", err)
 		return
 	}
-	_, err = fmt.Fprintf(file, "%s=%s", "texture", "textures/"+texture)
+	_, err = fmt.Fprintf(file, "%s=%s", "texture", "./textures/"+texture)
 	if err != nil {
 		fmt.Println("Error writing to file:", err)
 		return
@@ -198,7 +198,7 @@ func makeElytraPropFile(displayName string, texture string, fileName string) {
 		fmt.Println("Error writing to file:", err)
 		return
 	}
-	_, err = fmt.Fprintf(file, "%s=%s", "texture", "textures/"+texture)
+	_, err = fmt.Fprintf(file, "%s=%s", "texture", "./textures/"+texture)
 	if err != nil {
 		fmt.Println("Error writing to file:", err)
 		return
