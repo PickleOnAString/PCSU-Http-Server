@@ -24,4 +24,7 @@ go.work
 settings.json
 key.txt
 remote_key.txt
-template
+*.png
+*.properties
+template/assets/minecraft/citresewn/cit/models/*.json
+#template
