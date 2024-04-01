@@ -10,6 +10,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	cp "github.com/otiai10/copy"
 )
 
 var apiKey = ""
@@ -28,8 +30,10 @@ func main() {
 	mux.HandleFunc("/hello", basicAuth(getHello))
 	mux.HandleFunc("/resource_pack", basicAuth(getResourcePack))
 	mux.HandleFunc("/create/prop", basicAuth(postCreatePropFile))
+	mux.HandleFunc("/create/prop_with_model", basicAuth(postCreatePropFileWithModel))
 	mux.HandleFunc("/create/elytra_prop", basicAuth(postCreateElytraPropFile))
 	mux.HandleFunc("/create/texture", basicAuth(postCreateTexture))
+	mux.HandleFunc("/create/model", basicAuth(postCreateModel))
 
 	http.ListenAndServe(":3333", mux)
 }
@@ -136,6 +140,42 @@ func makePropFile(item string, displayName string, texture string, fileName stri
 	fmt.Println("File created:", filePath)
 }
 
+func makePropFileWithModel(item string, displayName string, model string, fileName string) {
+	filePath := "template/assets/minecraft/citresewn/cit/" + fileName + ".properties"
+
+	// Create the file
+	file, err := os.Create(filePath)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	defer file.Close()
+
+	// Write key-value pairs to the file
+	_, err = fmt.Fprintf(file, "%s=%s\n", "type", "item")
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+	_, err = fmt.Fprintf(file, "%s=%s\n", "items", item)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+	_, err = fmt.Fprintf(file, "%s=%s\n", "nbt.display.Name", displayName)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+	_, err = fmt.Fprintf(file, "%s=%s", "model", "models/"+model)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+
+	fmt.Println("File created:", filePath)
+}
+
 func makeElytraPropFile(displayName string, texture string, fileName string) {
 	filePath := "template/assets/minecraft/citresewn/cit/" + fileName + ".properties"
 
@@ -193,6 +233,32 @@ func saveImage(url string, fileName string) {
 	fmt.Println("Image downloaded successfully.")
 }
 
+func saveModel(url string, fileName string) {
+	response, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	defer response.Body.Close()
+
+	// Create a new file to save the image
+	file, err := os.Create("template/assets/minecraft/citresewn/cit/models/" + fileName + ".json")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	defer file.Close()
+
+	// Copy the response body to the file
+	_, err = io.Copy(file, response.Body)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	fmt.Println("Model downloaded successfully.")
+}
+
 func getRoot(w http.ResponseWriter, r *http.Request) {
 	/*hasFirst := r.URL.Query().Has("first")
 	first := r.URL.Query().Get("first")
@@ -211,6 +277,8 @@ func getHello(w http.ResponseWriter, r *http.Request) {
 }
 
 func getResourcePack(w http.ResponseWriter, r *http.Request) {
+	cp.Copy("template/assets/minecraft/citresewn/cit/textures/", "template/assets/minecraft/textures/")
+
 	zipFolder()
 	file, err := os.Open("resource_pack.zip")
 	if err != nil {
@@ -251,6 +319,27 @@ func postCreatePropFile(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "OK!")
 }
 
+func postCreatePropFileWithModel(w http.ResponseWriter, r *http.Request) {
+	item := r.PostFormValue("item")
+	if item == "" {
+		item = "air"
+	}
+	displayName := r.PostFormValue("displayName")
+	if displayName == "" {
+		displayName = ""
+	}
+	model := r.PostFormValue("model")
+	if model == "" {
+		model = ""
+	}
+	fileName := r.PostFormValue("fileName")
+	if fileName == "" {
+		fileName = "error"
+	}
+	makePropFileWithModel(item, displayName, model, fileName)
+	io.WriteString(w, "OK!")
+}
+
 func postCreateElytraPropFile(w http.ResponseWriter, r *http.Request) {
 	displayName := r.PostFormValue("displayName")
 	if displayName == "" {
@@ -278,6 +367,19 @@ func postCreateTexture(w http.ResponseWriter, r *http.Request) {
 		fileName = "error"
 	}
 	saveImage(url, fileName)
+	io.WriteString(w, "OK!")
+}
+
+func postCreateModel(w http.ResponseWriter, r *http.Request) {
+	url := r.PostFormValue("url")
+	if url == "" {
+		url = ""
+	}
+	fileName := r.PostFormValue("fileName")
+	if fileName == "" {
+		fileName = "error"
+	}
+	saveModel(url, fileName)
 	io.WriteString(w, "OK!")
 }
 
